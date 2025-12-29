@@ -1,50 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sats Lottery Game</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #121212;
-            color: #f0f0f0;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #ffb000;
-            margin-top: 50px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 40px;
-            background: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-        button {
-            background: #ffb000;
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 30px;
-        }
-        button:hover { background: #ffca3a; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sats Lottery Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 3rem;
+      color: #f7931a;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      max-width: 600px;
+      line-height: 1.6;
+      font-size: 1.1rem;
+    }
+    .instructions {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 30px 0;
+      max-width: 600px;
+    }
+    .timer {
+      font-size: 2rem;
+      color: #f7931a;
+      margin: 30px 0;
+      font-weight: bold;
+    }
+    .qr-placeholder {
+      background: #222;
+      width: 300px;
+      height: 300px;
+      border: 4px dashed #f7931a;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 30px auto;
+      font-size: 1.2rem;
+      color: #888;
+    }
+    button {
+      background: #f7931a;
+      color: black;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #ffb047;
+    }
+    #success {
+      display: none;
+      margin-top: 40px;
+    }
+    .confetti {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>⚡️ Sats Lottery Game ⚡️</h1>
-        <p>Pay a small Lightning invoice and instantly find out if you won big!</p>
-        <p><strong>Coming soon:</strong> real Lightning payments + confetti celebration</p>
-        <button onclick="alert('Lightning integration coming after node setup!')">Play Demo (soon)</button>
-    </div>
+
+  <h1>Sats Lottery Game</h1>
+  <p>Entry fee: 300 sats — Winner takes the whole pot ⚡️</p>
+
+  <div class="instructions">
+    <h2>How to play</h2>
+    <ol style="text-align: left; max-width: 500px; margin: 0 auto;">
+      <li>Scan the QR code below with any Lightning wallet</li>
+      <li>Pay exactly 300 sats</li>
+      <li>Once everyone has paid, the game goes live</li>
+      <li>Winner gets the entire pot sent instantly via Lightning</li>
+    </ol>
+  </div>
+
+  <div class="timer" id="timer">10:00</div>
+
+  <div class="qr-placeholder" id="qr">
+    QR code will appear here<br>when the node is ready
+  </div>
+
+  <!-- Temporary test button while node is syncing -->
+  <button onclick="simulatePayment()">Simulate Payment (for testing)</button>
+
+  <div id="success">
+    <h2>🎉 Payment received! 🎉</h2>
+    <p>You're in! Waiting for the other players...</p>
+    <p>When everyone has paid, the game starts and the pot will be sent to the winner.</p>
+  </div>
+
+  <canvas class="confetti" id="confetti"></canvas>
+
+  <script>
+    // Simple 10-minute countdown
+    let timeLeft = 10 * 60; // 10 minutes in seconds
+    const timerEl = document.getElementById('timer');
+
+    const countdown = setInterval(() => {
+      timeLeft--;
+      const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+      const secs = (timeLeft % 60).toString().padStart(2, '0');
+      timerEl.textContent = `${mins}:${secs}`;
+
+      if (timeLeft <= 0) {
+        clearInterval(countdown);
+        timerEl.textContent = "Time's up!";
+      }
+    }, 1000);
+
+    // Temporary simulate payment for testing the success flow
+    function simulatePayment() {
+      document.getElementById('qr').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+      launchConfetti();
+    }
+
+    // Basic confetti celebration
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const confetti = [];
+      const colors = ['#f7931a', '#ffb047', '#ffffff', '#ff6600'];
+
+      for (let i = 0; i < 300; i++) {
+        confetti.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          size: Math.random() * 8 + 4,
+          speed: Math.random() * 3 + 2,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: Math.random() * 10 - 5
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetti.forEach(p => {
+          p.y += p.speed;
+          p.rotation += p.rotationSpeed;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+
+          if (p.y > canvas.height) p.y = -10;
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+  </script>
+
 </body>
 </html>
