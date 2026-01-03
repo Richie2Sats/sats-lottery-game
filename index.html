@@ -79,6 +79,10 @@
       pointer-events: none;
       z-index: 10;
     }
+    #share-button {
+      background: #ff6600;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -104,6 +108,7 @@
 
   <!-- Temporary test button while node is syncing -->
   <button onclick="simulatePayment()">Simulate Payment (for testing)</button>
+  <button id="share-button" onclick="shareGame()">Share with Friends</button>
 
   <div id="success">
     <h2>🎉 Payment received! 🎉</h2>
@@ -135,6 +140,12 @@
       document.getElementById('qr').style.display = 'none';
       document.getElementById('success').style.display = 'block';
       launchConfetti();
+    }
+
+    // Share game link
+    function shareGame() {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard — share with friends!');
     }
 
     // Basic confetti celebration
