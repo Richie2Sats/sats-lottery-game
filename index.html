@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,6 +42,19 @@
       color: #f7931a;
       margin: 30px 0;
       font-weight: bold;
+    }
+    .pot {
+      font-size: 2.5rem;
+      color: #f7931a;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    .players {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: 20px auto;
     }
     .qr-placeholder {
       background: #222;
@@ -90,23 +104,21 @@
   <h1>Sats Lottery Game</h1>
   <p>Entry fee: 300 sats — Winner takes the whole pot ⚡️</p>
 
-  <div class="instructions">
-    <h2>How to play</h2>
-    <ol style="text-align: left; max-width: 500px; margin: 0 auto;">
-      <li>Scan the QR code below with any Lightning wallet</li>
-      <li>Pay exactly 300 sats</li>
-      <li>Once everyone has paid, the game goes live</li>
-      <li>Winner gets the entire pot sent instantly via Lightning</li>
-    </ol>
-  </div>
+  <div class="pot" id="pot">Pot: 0 sats</div>
 
   <div class="timer" id="timer">10:00</div>
+
+  <div class="players" id="players">
+    <h3>Players</h3>
+    <ul id="player-list">
+      <li>No players yet</li>
+    </ul>
+  </div>
 
   <div class="qr-placeholder" id="qr">
     QR code will appear here<br>when the node is ready
   </div>
 
-  <!-- Temporary test button while node is syncing -->
   <button onclick="simulatePayment()">Simulate Payment (for testing)</button>
   <button id="share-button" onclick="shareGame()">Share with Friends</button>
 
@@ -119,8 +131,18 @@
   <canvas class="confetti" id="confetti"></canvas>
 
   <script>
+    let potSize = 0;
+    let players = [];
+
+    // Update pot and players
+    function updateGame() {
+      document.getElementById('pot').textContent = `Pot: ${potSize} sats`;
+      const list = document.getElementById('player-list');
+      list.innerHTML = players.length ? players.map(p => `<li>${p}</li>`).join('') : '<li>No players yet</li>';
+    }
+
     // Simple 10-minute countdown
-    let timeLeft = 10 * 60; // 10 minutes in seconds
+    let timeLeft = 10 * 60;
     const timerEl = document.getElementById('timer');
 
     const countdown = setInterval(() => {
@@ -135,8 +157,11 @@
       }
     }, 1000);
 
-    // Temporary simulate payment for testing the success flow
+    // Simulate payment
     function simulatePayment() {
+      potSize += 300;
+      players.push('Player ' + players.length + 1);
+      updateGame();
       document.getElementById('qr').style.display = 'none';
       document.getElementById('success').style.display = 'block';
       launchConfetti();
@@ -145,10 +170,10 @@
     // Share game link
     function shareGame() {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard — share with friends!');
+      alert('Link copied! Share with friends.');
     }
 
-    // Basic confetti celebration
+    // Confetti
     function launchConfetti() {
       const canvas = document.getElementById('confetti');
       const ctx = canvas.getContext('2d');
