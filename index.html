@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sats Lottery Game</title>
-  <!-- Open Graph tags for custom link preview -->
-  <meta property="og:title" content="Sats Lottery Game">
-  <meta property="og:description" content="Entry fee: 300 sats — Winner takes the pot ⚡️ Join now!">
-  <meta property="og:image" content="https://i.imgur.com/your-thumbnail-link-here.jpg">  <!-- Replace with a Bitcoin/Lightning image URL -->
+  <!-- Open Graph for custom invite link preview -->
+  <meta property="og:title" content="Invite to the Sats Lottery Game">
+  <meta property="og:description" content="Entry: 300 sats. Winner takes the pot ⚡️ Join the fun!">
+  <meta property="og:image" content="https://i.imgur.com/your-imgur-link-here.jpg"> <!-- Replace with your Imgur link -->
   <meta property="og:url" content="https://richie2sats.github.io/sats-lottery-game/">
   <meta property="og:type" content="website">
   <style>
@@ -123,63 +123,49 @@
   </style>
 </head>
 <body>
-
   <h1>Sats Lottery Game<span class="lightning">⚡️</span></h1>
   <p>Entry fee: 300 sats — Winner takes the whole pot ⚡️</p>
-
   <div class="pot" id="pot">Pot: 0 sats</div>
-
   <div class="timer" id="timer">10:00</div>
-
   <div class="players" id="players">
     <h3>Players</h3>
     <ul id="player-list">
       <li>No players yet</li>
     </ul>
   </div>
-
   <div class="qr-placeholder" id="qr">
     QR code will appear here<br>when the node is ready
   </div>
-
   <button onclick="simulatePayment()">Simulate Payment (for testing)</button>
   <button id="share-button" onclick="shareGame()">Share with Friends</button>
-
   <div id="success">
     <h2>🎉 Payment received! 🎉</h2>
     <p>You're in! Waiting for the other players...</p>
     <p>When everyone has paid, the game starts and the pot will be sent to the winner.</p>
   </div>
-
   <canvas class="confetti" id="confetti"></canvas>
-
   <script>
     let potSize = 0;
     let players = [];
-
     // Update pot and players
     function updateGame() {
       document.getElementById('pot').textContent = `Pot: ${potSize} sats`;
       const list = document.getElementById('player-list');
       list.innerHTML = players.length ? players.map(p => `<li>${p}</li>`).join('') : '<li>No players yet</li>';
     }
-
     // Simple 10-minute countdown
     let timeLeft = 10 * 60;
     const timerEl = document.getElementById('timer');
-
     const countdown = setInterval(() => {
       timeLeft--;
       const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
       const secs = (timeLeft % 60).toString().padStart(2, '0');
       timerEl.textContent = `${mins}:${secs}`;
-
       if (timeLeft <= 0) {
         clearInterval(countdown);
         timerEl.textContent = "Time's up!";
       }
     }, 1000);
-
     // Simulate payment
     function simulatePayment() {
       potSize += 300;
@@ -189,23 +175,19 @@
       document.getElementById('success').style.display = 'block';
       launchConfetti();
     }
-
     // Share game link
     function shareGame() {
       navigator.clipboard.writeText(window.location.href);
       alert('Link copied! Share with friends.');
     }
-
     // Confetti
     function launchConfetti() {
       const canvas = document.getElementById('confetti');
       const ctx = canvas.getContext('2d');
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-
       const confetti = [];
       const colors = ['#f7931a', '#ffb047', '#ffffff', '#ff6600'];
-
       for (let i = 0; i < 300; i++) {
         confetti.push({
           x: Math.random() * canvas.width,
@@ -217,7 +199,6 @@
           rotationSpeed: Math.random() * 10 - 5
         });
       }
-
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         confetti.forEach(p => {
@@ -229,7 +210,6 @@
           ctx.fillStyle = p.color;
           ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
           ctx.restore();
-
           if (p.y > canvas.height) p.y = -10;
         });
         requestAnimationFrame(draw);
@@ -237,6 +217,5 @@
       draw();
     }
   </script>
-
 </body>
 </html>
