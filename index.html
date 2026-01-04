@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -56,7 +56,7 @@
             </div>
         </div>
         <div id="ui-result" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-center p-10">
-            <div id="res-icon" class="text-8xl mb-6">💰</div>
+            <div id="res-icon" class="text-8xl mb-6">??</div>
             <h1 id="res-title" class="heading text-5xl font-black mb-4 italic"></h1>
             <p id="res-sub" class="text-zinc-500 text-xs tracking-widest uppercase mb-12"></p>
             <button onclick="location.reload()" class="border border-green-500/30 text-green-500 px-10 py-4 rounded-full text-[10px] uppercase tracking-widest font-bold">Close Room</button>
@@ -64,7 +64,7 @@
     </div>
     <script>
         const API_KEY = "7837d34fbffb4bd1943ac1c4fa9af333";
-        const LNBITS_URL = "https://your-ngrok-url.ngrok-free.app"; // Update this later
+        const LNBITS_URL = "https://may-applicable-rounds-sbjct.trycloudflare.com"; // Update this later
         const ENTRY_SATS = 1000;
         const POT_SATS = 25000;
         let btcPrice = 0;
@@ -143,13 +143,13 @@
                 title.innerText = "WINNER";
                 title.className = "heading text-6xl font-black italic money-grad mb-4";
                 sub.innerText = "Funds dispersed to your Lightning Address";
-                icon.innerText = "💸";
+                icon.innerText = "??";
                 confetti({ particleCount: 400, spread: 120, origin: { y: 0.3 } });
             } else {
                 title.innerText = "LOSS";
                 title.className = "heading text-6xl font-black italic text-zinc-800 mb-4";
                 sub.innerText = "Better luck in the next tournament";
-                icon.innerText = "📉";
+                icon.innerText = "??";
                 gsap.from("#ui-result", { x: 10, repeat: 5, duration: 0.05, yoyo: true });
             }
         }
