@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -47,7 +47,7 @@
             
             <!-- Deep Link Button -->
             <a id="wallet-link" href="#" class="w-full bg-white text-black font-black py-4 rounded-xl mb-3 flex items-center justify-center space-x-2 shadow-xl">
-                <span>⚡</span> <span>OPEN IN WALLET</span>
+                <span>?</span> <span>OPEN IN WALLET</span>
             </a>
 
             <!-- Copy Button -->
@@ -75,7 +75,7 @@
         </div>
 
         <div id="ui-result" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-center p-10">
-            <div id="res-icon" class="text-8xl mb-6">💰</div>
+            <div id="res-icon" class="text-8xl mb-6">??</div>
             <h1 id="res-title" class="heading text-5xl font-black mb-4 italic"></h1>
             <p id="res-sub" class="text-zinc-500 text-xs tracking-widest uppercase mb-12"></p>
             <button onclick="location.reload()" class="border border-green-500/30 text-green-500 px-10 py-4 rounded-full text-[10px] uppercase tracking-widest font-bold">Close Room</button>
@@ -114,7 +114,7 @@
                 const res = await fetch(`${LNBITS_URL}/api/v1/payments`, {
                     method: 'POST',
                     headers: { 'X-Api-Key': API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "RC Sweepstakes Entry" })
+                    body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "ENTRY:" + document.getElementById("ln-address").value })
                 });
                 const data = await res.json();
                 currentInvoice = data.payment_request;
