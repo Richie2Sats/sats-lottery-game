@@ -1,221 +1,160 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sats Lottery Game</title>
-  <!-- Open Graph for custom invite link preview -->
-  <meta property="og:title" content="Invite to the Sats Lottery Game">
-  <meta property="og:description" content="Entry: 300 sats. Winner takes the pot ⚡️ Join the fun!">
-  <meta property="og:image" content="https://i.imgur.com/your-imgur-link-here.jpg"> <!-- Replace with your Imgur link -->
-  <meta property="og:url" content="https://richie2sats.github.io/sats-lottery-game/">
-  <meta property="og:type" content="website">
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
-      color: #f0f0f0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 3rem;
-      color: #f7931a;
-      margin-bottom: 0.5rem;
-      position: relative;
-    }
-    h1:hover .lightning {
-      animation: pulse 1s infinite;
-    }
-    .lightning {
-      position: absolute;
-      top: -10px;
-      left: -30px;
-      font-size: 2rem;
-      color: #ffb047;
-    }
-    p {
-      max-width: 600px;
-      line-height: 1.6;
-      font-size: 1.1rem;
-    }
-    .instructions {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 12px;
-      margin: 30px 0;
-      max-width: 600px;
-    }
-    .timer {
-      font-size: 2rem;
-      color: #f7931a;
-      margin: 30px 0;
-      font-weight: bold;
-    }
-    .pot {
-      font-size: 2.5rem;
-      color: #f7931a;
-      margin: 20px 0;
-      font-weight: bold;
-    }
-    .players {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 400px;
-      margin: 20px auto;
-    }
-    .qr-placeholder {
-      background: #222;
-      width: 300px;
-      height: 300px;
-      border: 4px dashed #f7931a;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 30px auto;
-      font-size: 1.2rem;
-      color: #888;
-    }
-    button {
-      background: #f7931a;
-      color: black;
-      border: none;
-      padding: 15px 30px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
-    button:hover {
-      background: #e67e00;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-    }
-    #success {
-      display: none;
-      margin-top: 40px;
-    }
-    .confetti {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 10;
-    }
-    #share-button {
-      background: #ff6600;
-      margin-top: 10px;
-    }
-    @keyframes pulse {
-      0% { opacity: 0.5; }
-      50% { opacity: 1; }
-      100% { opacity: 0.5; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RC SWEEPSTAKES | USD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #050505; font-family: 'Inter', sans-serif; overflow: hidden; color: white; }
+        .heading { font-family: 'Syncopate', sans-serif; text-transform: uppercase; letter-spacing: -2px; }
+        .money-grad { background: linear-gradient(135deg, #22c55e 0%, #fef08a 50%, #16a34a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass { background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(34, 197, 94, 0.2); }
+        .btn-money { background: linear-gradient(180deg, #22c55e 0%, #14532d 100%); box-shadow: 0 0 30px rgba(34, 197, 94, 0.2); }
+        .stamp-fx { transform: rotate(-15deg) scale(5); opacity: 0; }
+    </style>
 </head>
-<body>
-  <h1>Sats Lottery Game<span class="lightning">⚡️</span></h1>
-  <p>Entry fee: 300 sats — Winner takes the whole pot ⚡️</p>
-  <div class="pot" id="pot">Pot: 0 sats</div>
-  <div class="timer" id="timer">10:00</div>
-  <div class="players" id="players">
-    <h3>Players</h3>
-    <ul id="player-list">
-      <li>No players yet</li>
-    </ul>
-  </div>
-  <div class="qr-placeholder" id="qr">
-    QR code will appear here<br>when the node is ready
-  </div>
-  <button onclick="simulatePayment()">Simulate Payment (for testing)</button>
-  <button id="share-button" onclick="shareGame()">Share with Friends</button>
-  <div id="success">
-    <h2>🎉 Payment received! 🎉</h2>
-    <p>You're in! Waiting for the other players...</p>
-    <p>When everyone has paid, the game starts and the pot will be sent to the winner.</p>
-  </div>
-  <canvas class="confetti" id="confetti"></canvas>
-  <script>
-    let potSize = 0;
-    let players = [];
-    // Update pot and players
-    function updateGame() {
-      document.getElementById('pot').textContent = `Pot: ${potSize} sats`;
-      const list = document.getElementById('player-list');
-      list.innerHTML = players.length ? players.map(p => `<li>${p}</li>`).join('') : '<li>No players yet</li>';
-    }
-    // Simple 10-minute countdown
-    let timeLeft = 10 * 60;
-    const timerEl = document.getElementById('timer');
-    const countdown = setInterval(() => {
-      timeLeft--;
-      const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-      const secs = (timeLeft % 60).toString().padStart(2, '0');
-      timerEl.textContent = `${mins}:${secs}`;
-      if (timeLeft <= 0) {
-        clearInterval(countdown);
-        timerEl.textContent = "Time's up!";
-      }
-    }, 1000);
-    // Simulate payment
-    function simulatePayment() {
-      potSize += 300;
-      players.push('Player ' + (players.length + 1));
-      updateGame();
-      document.getElementById('qr').style.display = 'none';
-      document.getElementById('success').style.display = 'block';
-      launchConfetti();
-    }
-    // Share game link
-    function shareGame() {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied! Share with friends.');
-    }
-    // Confetti
-    function launchConfetti() {
-      const canvas = document.getElementById('confetti');
-      const ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      const confetti = [];
-      const colors = ['#f7931a', '#ffb047', '#ffffff', '#ff6600'];
-      for (let i = 0; i < 300; i++) {
-        confetti.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height - canvas.height,
-          size: Math.random() * 8 + 4,
-          speed: Math.random() * 3 + 2,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          rotation: Math.random() * 360,
-          rotationSpeed: Math.random() * 10 - 5
-        });
-      }
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        confetti.forEach(p => {
-          p.y += p.speed;
-          p.rotation += p.rotationSpeed;
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rotation * Math.PI / 180);
-          ctx.fillStyle = p.color;
-          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-          ctx.restore();
-          if (p.y > canvas.height) p.y = -10;
-        });
-        requestAnimationFrame(draw);
-      }
-      draw();
-    }
-  </script>
+<body class="flex items-center justify-center min-h-screen">
+    <div id="app" class="w-full max-w-sm h-[85vh] glass rounded-[3rem] p-8 flex flex-col justify-between items-center text-center relative overflow-hidden">
+        <div class="absolute top-[-10%] left-[-10%] w-[120%] h-[40%] bg-green-500/10 blur-[100px] rounded-full"></div>
+        <div class="z-10">
+            <h1 class="heading text-3xl font-black italic money-grad mb-1">RC</h1>
+            <h2 class="text-[10px] tracking-[0.5em] text-zinc-500 uppercase font-bold">Sweepstakes</h2>
+        </div>
+        <div id="ui-home" class="w-full z-10">
+            <div class="mb-10">
+                <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Live Jackpot Pool</p>
+                <h3 class="heading text-6xl font-black mb-2" id="usd-pot">$0.00</h3>
+                <p class="text-green-500 text-[10px] font-bold tracking-[0.2em] uppercase" id="sat-pot">0 SATS</p>
+            </div>
+            <div class="mb-8 bg-white/5 p-4 rounded-2xl border border-white/5">
+                <p class="text-[9px] text-zinc-500 uppercase mb-1">Entry Fee</p>
+                <p class="text-2xl font-black" id="usd-entry">$0.00</p>
+                <p class="text-[9px] text-zinc-600 uppercase" id="sat-entry">1,000 SATS</p>
+            </div>
+            <button onclick="buyTicket()" id="buy-btn" class="btn-money w-full py-6 rounded-2xl text-black font-black text-xl uppercase tracking-tighter transition-transform active:scale-95">Get Ticket</button>
+            <p class="text-[8px] text-zinc-700 mt-6 tracking-widest uppercase cursor-pointer" onclick="adminDraw()">Admin: Trigger Draw</p>
+        </div>
+        <div id="ui-payment" class="hidden w-full z-10">
+            <p class="text-green-500 font-black text-sm mb-6 animate-pulse uppercase">Secure Invoice Ready</p>
+            <div class="bg-white p-4 rounded-[2rem] inline-block mb-8 shadow-2xl">
+                <img id="qr-code" src="" class="w-56 h-56">
+            </div>
+            <p class="text-[8px] text-zinc-500 font-mono break-all opacity-40 px-4" id="bolt11"></p>
+        </div>
+        <div id="ui-success" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+            <div id="stamp" class="stamp-fx text-green-500 font-black text-7xl border-8 border-green-500 p-4 rounded-xl italic">PAID</div>
+        </div>
+        <div id="ui-draw" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
+            <h2 class="heading text-zinc-600 text-xl mb-10">Shuffling Entries</h2>
+            <div id="slot-machine" class="text-7xl font-black heading money-grad italic">$----</div>
+            <div class="w-48 h-1 bg-zinc-900 mt-4 rounded-full overflow-hidden">
+                <div id="draw-progress" class="w-0 h-full bg-green-500"></div>
+            </div>
+        </div>
+        <div id="ui-result" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-center p-10">
+            <div id="res-icon" class="text-8xl mb-6">💰</div>
+            <h1 id="res-title" class="heading text-5xl font-black mb-4 italic"></h1>
+            <p id="res-sub" class="text-zinc-500 text-xs tracking-widest uppercase mb-12"></p>
+            <button onclick="location.reload()" class="border border-green-500/30 text-green-500 px-10 py-4 rounded-full text-[10px] uppercase tracking-widest font-bold">Close Room</button>
+        </div>
+    </div>
+    <script>
+        const API_KEY = "7837d34fbffb4bd1943ac1c4fa9af333";
+        const LNBITS_URL = "https://your-ngrok-url.ngrok-free.app"; // Update this later
+        const ENTRY_SATS = 1000;
+        const POT_SATS = 25000;
+        let btcPrice = 0;
+        async function updatePrice() {
+            try {
+                const res = await fetch('https://api.blockchain.info/ticker');
+                const data = await res.json();
+                btcPrice = data.USD.last;
+                renderValues();
+            } catch(e) { console.log("Price feed error"); }
+        }
+        function renderValues() {
+            if (btcPrice === 0) return;
+            const entryUsd = (ENTRY_SATS * btcPrice / 100000000).toFixed(2);
+            const potUsd = (POT_SATS * btcPrice / 100000000).toFixed(2);
+            document.getElementById('usd-entry').innerText = `$${entryUsd}`;
+            document.getElementById('usd-pot').innerText = `$${potUsd}`;
+            document.getElementById('sat-pot').innerText = `${POT_SATS.toLocaleString()} SATS`;
+        }
+        async function buyTicket() {
+            document.getElementById('buy-btn').innerText = "AUTHORIZING...";
+            try {
+                const res = await fetch(`${LNBITS_URL}/api/v1/payments`, {
+                    method: 'POST',
+                    headers: { 'X-Api-Key': API_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "RC Sweepstakes Entry" })
+                });
+                const data = await res.json();
+                document.getElementById('ui-home').classList.add('hidden');
+                document.getElementById('ui-payment').classList.remove('hidden');
+                document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${data.payment_request}`;
+                document.getElementById('bolt11').innerText = data.payment_request;
+                poll(data.payment_hash);
+            } catch(e) { alert("Node Offline or Ngrok URL missing."); }
+        }
+        async function poll(hash) {
+            const check = setInterval(async () => {
+                const res = await fetch(`${LNBITS_URL}/api/v1/payments/${hash}`, { headers: { 'X-Api-Key': API_KEY } });
+                const status = await res.json();
+                if (status.paid) {
+                    clearInterval(check);
+                    showSuccess();
+                }
+            }, 1500);
+        }
+        function showSuccess() {
+            document.getElementById('ui-payment').classList.add('hidden');
+            document.getElementById('ui-success').classList.remove('hidden');
+            gsap.to("#stamp", { scale: 1, opacity: 1, duration: 0.4, ease: "bounce.out", onComplete: () => {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff'] });
+                setTimeout(() => { location.reload(); }, 3000);
+            }});
+        }
+        function adminDraw() {
+            document.getElementById('ui-home').classList.add('hidden');
+            document.getElementById('ui-draw').classList.remove('hidden');
+            gsap.to("#draw-progress", { width: "100%", duration: 5, ease: "none" });
+            let count = 0;
+            const shuffle = setInterval(() => {
+                document.getElementById('slot-machine').innerText = "$" + (Math.random() * 100).toFixed(2);
+                count++;
+                if (count > 80) {
+                    clearInterval(shuffle);
+                    const win = Math.random() > 0.5;
+                    showResult(win);
+                }
+            }, 50);
+        }
+        function showResult(win) {
+            document.getElementById('ui-draw').classList.add('hidden');
+            document.getElementById('ui-result').classList.remove('hidden');
+            const title = document.getElementById('res-title');
+            const sub = document.getElementById('res-sub');
+            const icon = document.getElementById('res-icon');
+            if (win) {
+                title.innerText = "WINNER";
+                title.className = "heading text-6xl font-black italic money-grad mb-4";
+                sub.innerText = "Funds dispersed to your Lightning Address";
+                icon.innerText = "💸";
+                confetti({ particleCount: 400, spread: 120, origin: { y: 0.3 } });
+            } else {
+                title.innerText = "LOSS";
+                title.className = "heading text-6xl font-black italic text-zinc-800 mb-4";
+                sub.innerText = "Better luck in the next tournament";
+                icon.innerText = "📉";
+                gsap.from("#ui-result", { x: 10, repeat: 5, duration: 0.05, yoyo: true });
+            }
+        }
+        updatePrice();
+        setInterval(updatePrice, 30000);
+    </script>
 </body>
 </html>
