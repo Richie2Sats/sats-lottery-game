@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,10 +20,12 @@
 <body class="flex items-center justify-center min-h-screen">
     <div id="app" class="w-full max-w-sm h-[85vh] glass rounded-[3rem] p-8 flex flex-col justify-between items-center text-center relative overflow-hidden">
         <div class="absolute top-[-10%] left-[-10%] w-[120%] h-[40%] bg-green-500/10 blur-[100px] rounded-full"></div>
+        
         <div class="z-10">
             <h1 class="heading text-3xl font-black italic money-grad mb-1">RC</h1>
             <h2 class="text-[10px] tracking-[0.5em] text-zinc-500 uppercase font-bold">Sweepstakes</h2>
         </div>
+
         <div id="ui-home" class="w-full z-10">
             <div class="mb-10">
                 <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Live Jackpot Pool</p>
@@ -38,16 +40,32 @@
             <button onclick="buyTicket()" id="buy-btn" class="btn-money w-full py-6 rounded-2xl text-black font-black text-xl uppercase tracking-tighter transition-transform active:scale-95">Get Ticket</button>
             <p class="text-[8px] text-zinc-700 mt-6 tracking-widest uppercase cursor-pointer" onclick="adminDraw()">Admin: Trigger Draw</p>
         </div>
-        <div id="ui-payment" class="hidden w-full z-10">
-            <p class="text-green-500 font-black text-sm mb-6 animate-pulse uppercase">Secure Invoice Ready</p>
-            <div class="bg-white p-4 rounded-[2rem] inline-block mb-8 shadow-2xl">
-                <img id="qr-code" src="" class="w-56 h-56">
+
+        <!-- MOBILE OPTIMIZED PAYMENT SCREEN -->
+        <div id="ui-payment" class="hidden w-full z-10 flex flex-col items-center">
+            <p class="text-green-500 font-black text-xs mb-4 animate-pulse uppercase">Invoice Ready</p>
+            
+            <!-- Deep Link Button -->
+            <a id="wallet-link" href="#" class="w-full bg-white text-black font-black py-4 rounded-xl mb-3 flex items-center justify-center space-x-2 shadow-xl">
+                <span>⚡</span> <span>OPEN IN WALLET</span>
+            </a>
+
+            <!-- Copy Button -->
+            <button onclick="copyInvoice()" class="w-full bg-zinc-800 text-white text-[10px] py-2 rounded-lg mb-6 border border-white/10 tracking-widest uppercase">
+                Copy Invoice Code
+            </button>
+
+            <!-- QR for others to scan -->
+            <div class="bg-white p-3 rounded-2xl inline-block mb-4 shadow-2xl">
+                <img id="qr-code" src="" class="w-40 h-40">
             </div>
-            <p class="text-[8px] text-zinc-500 font-mono break-all opacity-40 px-4" id="bolt11"></p>
+            <p class="text-[8px] text-zinc-600 uppercase tracking-widest">Or have a friend scan you</p>
         </div>
+
         <div id="ui-success" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95">
             <div id="stamp" class="stamp-fx text-green-500 font-black text-7xl border-8 border-green-500 p-4 rounded-xl italic">PAID</div>
         </div>
+
         <div id="ui-draw" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
             <h2 class="heading text-zinc-600 text-xl mb-10">Shuffling Entries</h2>
             <div id="slot-machine" class="text-7xl font-black heading money-grad italic">$----</div>
@@ -55,19 +73,23 @@
                 <div id="draw-progress" class="w-0 h-full bg-green-500"></div>
             </div>
         </div>
+
         <div id="ui-result" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-center p-10">
-            <div id="res-icon" class="text-8xl mb-6">??</div>
+            <div id="res-icon" class="text-8xl mb-6">💰</div>
             <h1 id="res-title" class="heading text-5xl font-black mb-4 italic"></h1>
             <p id="res-sub" class="text-zinc-500 text-xs tracking-widest uppercase mb-12"></p>
             <button onclick="location.reload()" class="border border-green-500/30 text-green-500 px-10 py-4 rounded-full text-[10px] uppercase tracking-widest font-bold">Close Room</button>
         </div>
     </div>
+
     <script>
         const API_KEY = "7837d34fbffb4bd1943ac1c4fa9af333";
-        const LNBITS_URL = "https://may-applicable-rounds-sbjct.trycloudflare.com"; // Update this later
+        const LNBITS_URL = "https://may-applicable-rounds-sbjct.trycloudflare.com";
         const ENTRY_SATS = 1000;
         const POT_SATS = 25000;
+        let currentInvoice = "";
         let btcPrice = 0;
+
         async function updatePrice() {
             try {
                 const res = await fetch('https://api.blockchain.info/ticker');
@@ -76,6 +98,7 @@
                 renderValues();
             } catch(e) { console.log("Price feed error"); }
         }
+
         function renderValues() {
             if (btcPrice === 0) return;
             const entryUsd = (ENTRY_SATS * btcPrice / 100000000).toFixed(2);
@@ -84,6 +107,7 @@
             document.getElementById('usd-pot').innerText = `$${potUsd}`;
             document.getElementById('sat-pot').innerText = `${POT_SATS.toLocaleString()} SATS`;
         }
+
         async function buyTicket() {
             document.getElementById('buy-btn').innerText = "AUTHORIZING...";
             try {
@@ -93,13 +117,26 @@
                     body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "RC Sweepstakes Entry" })
                 });
                 const data = await res.json();
+                currentInvoice = data.payment_request;
+                
                 document.getElementById('ui-home').classList.add('hidden');
                 document.getElementById('ui-payment').classList.remove('hidden');
-                document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${data.payment_request}`;
-                document.getElementById('bolt11').innerText = data.payment_request;
+                
+                // Set the Deep Link
+                document.getElementById('wallet-link').href = `lightning:${currentInvoice}`;
+                
+                // Set the QR Code
+                document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${currentInvoice}`;
+                
                 poll(data.payment_hash);
-            } catch(e) { alert("Node Offline or Ngrok URL missing."); }
+            } catch(e) { alert("Node Offline. Ensure the Cloudflare tunnel is running!"); }
         }
+
+        function copyInvoice() {
+            navigator.clipboard.writeText(currentInvoice);
+            alert("Invoice Copied!");
+        }
+
         async function poll(hash) {
             const check = setInterval(async () => {
                 const res = await fetch(`${LNBITS_URL}/api/v1/payments/${hash}`, { headers: { 'X-Api-Key': API_KEY } });
@@ -110,6 +147,7 @@
                 }
             }, 1500);
         }
+
         function showSuccess() {
             document.getElementById('ui-payment').classList.add('hidden');
             document.getElementById('ui-success').classList.remove('hidden');
@@ -118,6 +156,7 @@
                 setTimeout(() => { location.reload(); }, 3000);
             }});
         }
+
         function adminDraw() {
             document.getElementById('ui-home').classList.add('hidden');
             document.getElementById('ui-draw').classList.remove('hidden');
@@ -133,24 +172,18 @@
                 }
             }, 50);
         }
+
         function showResult(win) {
             document.getElementById('ui-draw').classList.add('hidden');
             document.getElementById('ui-result').classList.remove('hidden');
             const title = document.getElementById('res-title');
-            const sub = document.getElementById('res-sub');
-            const icon = document.getElementById('res-icon');
             if (win) {
                 title.innerText = "WINNER";
                 title.className = "heading text-6xl font-black italic money-grad mb-4";
-                sub.innerText = "Funds dispersed to your Lightning Address";
-                icon.innerText = "??";
                 confetti({ particleCount: 400, spread: 120, origin: { y: 0.3 } });
             } else {
                 title.innerText = "LOSS";
                 title.className = "heading text-6xl font-black italic text-zinc-800 mb-4";
-                sub.innerText = "Better luck in the next tournament";
-                icon.innerText = "??";
-                gsap.from("#ui-result", { x: 10, repeat: 5, duration: 0.05, yoyo: true });
             }
         }
         updatePrice();
