@@ -18,9 +18,10 @@
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
+
     <div id="app" class="w-full max-w-sm h-[85vh] glass rounded-[3rem] p-8 flex flex-col justify-between items-center text-center relative overflow-hidden">
         <div class="absolute top-[-10%] left-[-10%] w-[120%] h-[40%] bg-green-500/10 blur-[100px] rounded-full"></div>
-        
+
         <div class="z-10">
             <h1 class="heading text-3xl font-black italic money-grad mb-1">RC</h1>
             <h2 class="text-[10px] tracking-[0.5em] text-zinc-500 uppercase font-bold">Sweepstakes</h2>
@@ -32,34 +33,32 @@
                 <h3 class="heading text-6xl font-black mb-2" id="usd-pot">$0.00</h3>
                 <p class="text-green-500 text-[10px] font-bold tracking-[0.2em] uppercase" id="sat-pot">0 SATS</p>
             </div>
+
             <div class="mb-8 bg-white/5 p-4 rounded-2xl border border-white/5">
                 <p class="text-[9px] text-zinc-500 uppercase mb-1">Entry Fee</p>
                 <p class="text-2xl font-black" id="usd-entry">$0.00</p>
                 <p class="text-[9px] text-zinc-600 uppercase" id="sat-entry">1,000 SATS</p>
             </div>
+
+            <!-- THE MISSING INPUT BOX THAT WAS CAUSING THE ERROR -->
+            <input type="text" id="ln-address" placeholder="ENTER LIGHTNING ADDRESS" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 mb-4 text-center text-[10px] font-bold tracking-widest uppercase focus:outline-none focus:border-green-500/50">
+
             <button onclick="buyTicket()" id="buy-btn" class="btn-money w-full py-6 rounded-2xl text-black font-black text-xl uppercase tracking-tighter transition-transform active:scale-95">Get Ticket</button>
             <p class="text-[8px] text-zinc-700 mt-6 tracking-widest uppercase cursor-pointer" onclick="adminDraw()">Admin: Trigger Draw</p>
         </div>
 
-        <!-- MOBILE OPTIMIZED PAYMENT SCREEN -->
         <div id="ui-payment" class="hidden w-full z-10 flex flex-col items-center">
             <p class="text-green-500 font-black text-xs mb-4 animate-pulse uppercase">Invoice Ready</p>
-            
-            <!-- Deep Link Button -->
             <a id="wallet-link" href="#" class="w-full bg-white text-black font-black py-4 rounded-xl mb-3 flex items-center justify-center space-x-2 shadow-xl">
-                <span>?</span> <span>OPEN IN WALLET</span>
+                <span>OPEN IN WALLET</span>
             </a>
-
-            <!-- Copy Button -->
             <button onclick="copyInvoice()" class="w-full bg-zinc-800 text-white text-[10px] py-2 rounded-lg mb-6 border border-white/10 tracking-widest uppercase">
                 Copy Invoice Code
             </button>
-
-            <!-- QR for others to scan -->
             <div class="bg-white p-3 rounded-2xl inline-block mb-4 shadow-2xl">
                 <img id="qr-code" src="" class="w-40 h-40">
             </div>
-            <p class="text-[8px] text-zinc-600 uppercase tracking-widest">Or have a friend scan you</p>
+            <p class="text-[8px] text-zinc-600 uppercase tracking-widest">Or scan with another phone</p>
         </div>
 
         <div id="ui-success" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95">
@@ -75,7 +74,7 @@
         </div>
 
         <div id="ui-result" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-center p-10">
-            <div id="res-icon" class="text-8xl mb-6">??</div>
+            <div id="res-icon" class="text-8xl mb-6">🏆</div>
             <h1 id="res-title" class="heading text-5xl font-black mb-4 italic"></h1>
             <p id="res-sub" class="text-zinc-500 text-xs tracking-widest uppercase mb-12"></p>
             <button onclick="location.reload()" class="border border-green-500/30 text-green-500 px-10 py-4 rounded-full text-[10px] uppercase tracking-widest font-bold">Close Room</button>
@@ -87,6 +86,7 @@
         const LNBITS_URL = "https://may-applicable-rounds-sbjct.trycloudflare.com";
         const ENTRY_SATS = 1000;
         const POT_SATS = 25000;
+
         let currentInvoice = "";
         let btcPrice = 0;
 
@@ -109,27 +109,27 @@
         }
 
         async function buyTicket() {
+            const addr = document.getElementById("ln-address").value;
+            if(!addr) { alert("Enter an address first!"); return; }
+            
             document.getElementById('buy-btn').innerText = "AUTHORIZING...";
             try {
                 const res = await fetch(`${LNBITS_URL}/api/v1/payments`, {
                     method: 'POST',
                     headers: { 'X-Api-Key': API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "ENTRY:" + document.getElementById("ln-address").value })
+                    body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "ENTRY:" + addr })
                 });
                 const data = await res.json();
                 currentInvoice = data.payment_request;
-                
                 document.getElementById('ui-home').classList.add('hidden');
                 document.getElementById('ui-payment').classList.remove('hidden');
-                
-                // Set the Deep Link
                 document.getElementById('wallet-link').href = `lightning:${currentInvoice}`;
-                
-                // Set the QR Code
                 document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${currentInvoice}`;
-                
                 poll(data.payment_hash);
-            } catch(e) { alert("Node Offline. Ensure the Cloudflare tunnel is running!"); }
+            } catch(e) {
+                alert("Connection Error. Refresh the Cloudflare tunnel link on your phone!");
+                document.getElementById('buy-btn').innerText = "Get Ticket";
+            }
         }
 
         function copyInvoice() {
@@ -139,13 +139,17 @@
 
         async function poll(hash) {
             const check = setInterval(async () => {
-                const res = await fetch(`${LNBITS_URL}/api/v1/payments/${hash}`, { headers: { 'X-Api-Key': API_KEY } });
-                const status = await res.json();
-                if (status.paid) {
-                    clearInterval(check);
-                    showSuccess();
-                }
-            }, 1500);
+                try {
+                    const res = await fetch(`${LNBITS_URL}/api/v1/payments/${hash}`, {
+                        headers: { 'X-Api-Key': API_KEY }
+                    });
+                    const status = await res.json();
+                    if (status.paid) {
+                        clearInterval(check);
+                        showSuccess();
+                    }
+                } catch(e) { console.log("Polling..."); }
+            }, 2000);
         }
 
         function showSuccess() {
