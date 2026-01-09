@@ -18,10 +18,9 @@
     </style>
 </head>
 <body class="flex flex-col items-center justify-start min-h-screen p-4">
-
     <div id="app" class="w-full max-w-sm glass rounded-[2.5rem] p-6 flex flex-col items-center text-center relative overflow-hidden my-auto">
         <div class="absolute top-[-10%] left-[-10%] w-[120%] h-[30%] bg-green-500/10 blur-[80px] rounded-full"></div>
-
+        
         <div class="z-10 mb-6">
             <h1 class="heading text-2xl font-black italic money-grad mb-1">RC</h1>
             <h2 class="text-[9px] tracking-[0.4em] text-zinc-500 uppercase font-bold">Sweepstakes</h2>
@@ -41,9 +40,10 @@
             </div>
 
             <input type="text" id="ln-address" placeholder="ENTER LIGHTNING ADDRESS" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 mb-4 text-center text-[11px] font-bold tracking-widest uppercase focus:outline-none focus:border-green-500/50 text-white">
-
+            
             <button onclick="buyTicket()" id="buy-btn" class="btn-money w-full py-5 rounded-2xl text-black font-black text-lg uppercase tracking-tighter transition-transform active:scale-95">Get Ticket</button>
-            <p class="text-[8px] text-zinc-700 mt-6 tracking-widest uppercase" onclick="adminDraw()">Admin: Trigger Draw</p>
+            
+            <p class="text-[8px] text-zinc-700 mt-6 tracking-widest uppercase cursor-pointer hover:text-zinc-500" onclick="adminDraw()">Admin: Trigger Draw</p>
         </div>
 
         <div id="ui-payment" class="hidden w-full z-10 flex flex-col items-center">
@@ -51,9 +51,7 @@
             <a id="wallet-link" href="#" class="w-full bg-white text-black font-black py-4 rounded-xl mb-3 flex items-center justify-center space-x-2 shadow-xl">
                 <span>OPEN IN WALLET</span>
             </a>
-            <button onclick="copyInvoice()" class="w-full bg-zinc-800 text-white text-[10px] py-3 rounded-lg mb-4 border border-white/10 tracking-widest uppercase">
-                Copy Invoice Code
-            </button>
+            <button onclick="copyInvoice()" class="w-full bg-zinc-800 text-white text-[10px] py-3 rounded-lg mb-4 border border-white/10 tracking-widest uppercase"> Copy Invoice Code </button>
             <div class="bg-white p-2 rounded-xl inline-block mb-4 shadow-2xl">
                 <img id="qr-code" src="" class="w-32 h-32">
             </div>
@@ -64,6 +62,7 @@
         <div id="ui-success" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/95">
             <div id="stamp" class="stamp-fx text-green-500 font-black text-7xl border-8 border-green-500 p-4 rounded-xl italic">PAID</div>
         </div>
+
         <div id="ui-draw" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
             <h2 class="heading text-zinc-600 text-xl mb-10">Shuffling Entries</h2>
             <div id="slot-machine" class="text-7xl font-black heading money-grad italic">$----</div>
@@ -71,6 +70,7 @@
                 <div id="draw-progress" class="w-0 h-full bg-green-500"></div>
             </div>
         </div>
+
         <div id="ui-result" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-center p-10">
             <div id="res-icon" class="text-8xl mb-6">🏆</div>
             <h1 id="res-title" class="heading text-5xl font-black mb-4 italic"></h1>
@@ -79,11 +79,14 @@
     </div>
 
     <script>
+        // --- CONFIGURATION ---
+        const DEV_MODE = true; // SET TO FALSE WHEN UMBREL IS READY
+        
         const API_KEY = "ea5274aebdc043ffb8c9af5cdeefb379";
         const LNBITS_URL = "https://may-applicable-rounds-sbjct.trycloudflare.com";
         const ENTRY_SATS = 1000;
         const POT_SATS = 25000;
-
+        
         let currentInvoice = "";
         let btcPrice = 0;
 
@@ -108,23 +111,45 @@
         async function buyTicket() {
             const addr = document.getElementById("ln-address").value;
             if(!addr) { alert("Enter an address first!"); return; }
+            
             document.getElementById('buy-btn').innerText = "AUTHORIZING...";
-            try {
-                const res = await fetch(`${LNBITS_URL}/api/v1/payments`, {
-                    method: 'POST',
-                    headers: { 'X-Api-Key': API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "ENTRY:" + addr })
-                });
-                const data = await res.json();
-                currentInvoice = data.payment_request;
-                document.getElementById('ui-home').classList.add('hidden');
-                document.getElementById('ui-payment').classList.remove('hidden');
-                document.getElementById('wallet-link').href = `lightning:${currentInvoice}`;
-                document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${currentInvoice}`;
-                poll(data.payment_hash);
-            } catch(e) {
-                alert("Connection Error. Ensure your Cloudflare tunnel is running and you've clicked 'Visit Site' on its URL.");
-                document.getElementById('buy-btn').innerText = "Get Ticket";
+
+            if (DEV_MODE) {
+                // --- MOCK BACKEND ---
+                console.log("DEV MODE: Mocking invoice creation...");
+                setTimeout(() => {
+                    currentInvoice = "lnbc100u1p3xnhl2pp5j4erq6qsz5vxxvqy3z4vqy3z4vqy3z4vqy3z4vqy3z4vqy3z4vqy3z4vqy3z4vqy3z4sd";
+                    const mockHash = "mock_hash_" + Math.random().toString(36).substring(7);
+                    
+                    document.getElementById('ui-home').classList.add('hidden');
+                    document.getElementById('ui-payment').classList.remove('hidden');
+                    document.getElementById('wallet-link').href = `lightning:${currentInvoice}`;
+                    document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${currentInvoice}`;
+                    
+                    // Start polling simulation
+                    mockPoll(mockHash);
+                }, 800);
+            } else {
+                // --- REAL BACKEND ---
+                try {
+                    const res = await fetch(`${LNBITS_URL}/api/v1/payments`, {
+                        method: 'POST',
+                        headers: { 'X-Api-Key': API_KEY, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ out: false, amount: ENTRY_SATS, memo: "ENTRY:" + addr })
+                    });
+                    const data = await res.json();
+                    currentInvoice = data.payment_request;
+                    
+                    document.getElementById('ui-home').classList.add('hidden');
+                    document.getElementById('ui-payment').classList.remove('hidden');
+                    document.getElementById('wallet-link').href = `lightning:${currentInvoice}`;
+                    document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${currentInvoice}`;
+                    
+                    poll(data.payment_hash);
+                } catch(e) {
+                    alert("Connection Error. Ensure your Cloudflare tunnel is running.");
+                    document.getElementById('buy-btn').innerText = "Get Ticket";
+                }
             }
         }
 
@@ -133,12 +158,19 @@
             alert("Invoice Copied!");
         }
 
+        // Mock Polling for Dev Mode
+        function mockPoll(hash) {
+            console.log("DEV MODE: Waiting for simulated payment...");
+            setTimeout(() => {
+                showSuccess();
+            }, 3000); // Wait 3 seconds then trigger success
+        }
+
+        // Real Polling
         async function poll(hash) {
             const check = setInterval(async () => {
                 try {
-                    const res = await fetch(`${LNBITS_URL}/api/v1/payments/${hash}`, {
-                        headers: { 'X-Api-Key': API_KEY }
-                    });
+                    const res = await fetch(`${LNBITS_URL}/api/v1/payments/${hash}`, { headers: { 'X-Api-Key': API_KEY } });
                     const status = await res.json();
                     if (status.paid) {
                         clearInterval(check);
@@ -151,16 +183,20 @@
         function showSuccess() {
             document.getElementById('ui-payment').classList.add('hidden');
             document.getElementById('ui-success').classList.remove('hidden');
-            gsap.to("#stamp", { scale: 1, opacity: 1, duration: 0.4, ease: "bounce.out", onComplete: () => {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff'] });
-                setTimeout(() => { location.reload(); }, 3000);
-            }});
+            gsap.to("#stamp", { 
+                scale: 1, opacity: 1, duration: 0.4, ease: "bounce.out", 
+                onComplete: () => {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff'] });
+                    setTimeout(() => { location.reload(); }, 3000);
+                }
+            });
         }
 
         function adminDraw() {
             document.getElementById('ui-home').classList.add('hidden');
             document.getElementById('ui-draw').classList.remove('hidden');
             gsap.to("#draw-progress", { width: "100%", duration: 5, ease: "none" });
+            
             let count = 0;
             const shuffle = setInterval(() => {
                 document.getElementById('slot-machine').innerText = "$" + (Math.random() * 100).toFixed(2);
@@ -186,6 +222,7 @@
                 title.className = "heading text-6xl font-black italic text-zinc-800 mb-4";
             }
         }
+
         updatePrice();
         setInterval(updatePrice, 30000);
     </script>
